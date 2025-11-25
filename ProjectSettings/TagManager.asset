@@ -5,6 +5,9 @@ TagManager:
   serializedVersion: 2
   tags:
   - Suckable
+  - SuckableSmall
+  - SuckableLarge
+  - SuckableMedium
   layers:
   - Default
   - TransparentFX

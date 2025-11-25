@@ -1,0 +1,10 @@
+- Name of Game : 
+- Group Members / Specific Roles:
+    - Ryan Hanna
+    - Chris Castrence
+    - Matthew Washington
+    - Kyle Torres
+- Description of Target For Game:
+    - In this game the player is a tornado whose goal is to fill up a meter by consuming objects such as buildings, cars, trees, etc.
+    - The tornado would have to try and avoid storm chasers who are trying to get rid of the tornado.
+    - As the meter grows the bigger the tornado becomes. 

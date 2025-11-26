@@ -16,33 +16,33 @@ public class CameraFixedAngleFollow : MonoBehaviour
     // How fast the camera follows (higher = faster)
     public float followSmooth = 5f;
 
-    private float initialPlayerSize = 1f;
+    [Header("Scaling Settings")]
+    // Used as a reference for the scaling of the camera
+    public float referenceScale = 0.1f; 
 
     [SerializeField] private float currentHeightRuntime;
     [SerializeField] private float currentDistanceRuntime;
 
-    void Start()
-    {
-        if (target)
-        {
-            initialPlayerSize = target.localScale.y;
-        }
-    }
-
-    // Called after all Update methods, ensures smooth camera movement
+    // Called after all Update methods
     void LateUpdate()
     {
         // Exit if no target is assigned
         if (!target) return;
 
         float currentScale = target.localScale.y;
-        float growthDelta = currentScale - initialPlayerSize;
 
-        // Height growth ratio is 3x the distance growth ratio
+        // FIX: Compare current scale against the fixed Reference (0.1), not a startup variable.
+        float growthDelta = currentScale - referenceScale;
+
+        // Height growth ratio is 3x the distance growth ratio (Your specific formula)
         float addedHeight = (growthDelta / 0.1f) * 3f;
 
         // Calculate the target height and distance
         float targetHeight = height + addedHeight;
+        
+        // Prevent height from going negative if something weird happens
+        if (targetHeight < 2f) targetHeight = 2f;
+
         float baseHeight = Mathf.Max(height, 0.001f);
         float ratio = targetHeight / baseHeight;
         float targetDistance = distance * ratio;

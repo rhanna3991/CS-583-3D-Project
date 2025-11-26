@@ -1,64 +1,103 @@
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
-/// <summary>
-/// Handles tornado growth visuals based on XP gain.
-/// </summary>
 public class TornadoGrowth : MonoBehaviour
 {
-    [Header("XP Settings")]
-    [Tooltip("XP needed to reach the next level.")]
-    public float xpToNextLevel = 100f;
-    [Tooltip("How much larger the tornado gets per level.")]
-    public float scaleGrowth = 0.25f;
-    [Tooltip("How much wider the XP bar gets per level.")]
-    public float widthGrowth = 20f;
+    [Header("XP Milestones")]
+    [Tooltip("The total XP required to reach each size level.")]
+    public List<float> milestones = new List<float> { 100f, 300f, 600f, 1000f, 1500f };
+    
+    [Header("Growth Settings")]
+    public float startScale = 0.1f; // The size at 0 XP
+    public float growthPerLevel = 0.1f; // How much size adds per milestone passed
 
-    [Header("UI References")]
-    [Tooltip("Slider representing current XP progress.")]
+    [Header("UI Settings")]
     public Slider xpBar;
-    [Tooltip("RectTransform of the slider for widening on level-up.")]
     public RectTransform xpBarRect;
+    public float baseBarWidth = 100f; // Width of the bar for the first milestone (100 XP)
 
-    private float currentXP = 0f;
+    // Read-only property to see total XP in Inspector (for debugging)
+    [SerializeField] private float _currentTotalXP = 0f;
+    public float CurrentTotalXP => _currentTotalXP;
 
     void Start()
     {
-        UpdateUI();
+        // Initialize visuals based on starting XP
+        UpdateState();
     }
 
     public void AddExperience(float amount)
     {
-        currentXP += amount;
-
-        if (currentXP >= xpToNextLevel)
-        {
-            LevelUp();
-        }
-
-        UpdateUI();
+        _currentTotalXP += amount;
+        UpdateState();
     }
 
-    private void LevelUp()
+    public void RemoveExperience(float amount)
     {
-        currentXP = 0f;
-        xpToNextLevel *= 1.5f;
-
-        transform.localScale += Vector3.one * scaleGrowth;
-
-        if (xpBarRect != null)
-        {
-            xpBarRect.sizeDelta += new Vector2(widthGrowth, 0f);
-        }
+        _currentTotalXP -= amount;
+        if (_currentTotalXP < 0) _currentTotalXP = 0; // Cannot go below 0
+        UpdateState();
     }
 
-    private void UpdateUI()
+    // Calculates Level, Size, and UI based on Total XP
+    private void UpdateState()
     {
+        int currentLevel = 0;
+        float nextMilestone = milestones[0];
+
+        // 1. Determine Level by checking which milestones we've passed
+        for (int i = 0; i < milestones.Count; i++)
+        {
+            if (_currentTotalXP >= milestones[i])
+            {
+                // Milestone passed
+                currentLevel = i + 1;
+                
+                // Determine what the next milestone is
+                if (i + 1 < milestones.Count)
+                {
+                    nextMilestone = milestones[i + 1];
+                }
+                else
+                {
+                    // Max level reached: Create a "fake" higher milestone
+                    nextMilestone = milestones[i] * 1.5f; 
+                }
+            }
+            else
+            {
+                nextMilestone = milestones[i];
+                break; // Stop checking
+            }
+        }
+
+        // 2. Set Physical Size
+        // Formula: Base 0.1 + (0.1 * Level)
+        float targetScale = startScale + (currentLevel * growthPerLevel);
+        transform.localScale = Vector3.one * targetScale;
+
+        // 3. Calculate level-specific values for UI
+        float previousMilestone = currentLevel == 0 ? 0f : milestones[currentLevel - 1];
+        float xpThisLevel = _currentTotalXP - previousMilestone;
+        float levelRange = nextMilestone - previousMilestone;
+
+        // 4. Update UI Bar Values
         if (xpBar != null)
         {
-            xpBar.maxValue = xpToNextLevel;
-            xpBar.value = currentXP;
+            // Bar shows XP progress within the current level, not total XP
+            xpBar.maxValue = levelRange;
+            xpBar.value = xpThisLevel;
+        }
+
+        // Update bar width scaling based on the current level's XP range relative to the first level's range
+        if (xpBarRect != null)
+        {
+            float firstRange = milestones[0] - 0f;
+            float widthRatio = levelRange / firstRange;
+            
+            float newWidth = baseBarWidth * widthRatio;
+            xpBarRect.sizeDelta = new Vector2(newWidth, xpBarRect.sizeDelta.y);
         }
     }
 }
-

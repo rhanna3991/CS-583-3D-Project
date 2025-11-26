@@ -123,4 +123,4 @@ MonoBehaviour:
   speed: 10
   xpDamage: 20
   lifetime: 5
-  targetTag: player
+  explosionPrefab: {fileID: 6528385787001758692, guid: b2c642cb049c1984eb71c705dbc46991, type: 3}

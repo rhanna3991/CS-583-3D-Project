@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 using System.Collections.Generic;
 
 public class TornadoGrowth : MonoBehaviour
@@ -16,6 +17,9 @@ public class TornadoGrowth : MonoBehaviour
     public Slider xpBar;
     public RectTransform xpBarRect;
     public float baseBarWidth = 100f; // Width of the bar for the first milestone (100 XP)
+    
+    [Header("Game Over Settings")]
+    public string mainMenuSceneName = "MainMenu";
 
     // Read-only property to see total XP in Inspector (for debugging)
     [SerializeField] private float _currentTotalXP = 0f;
@@ -36,8 +40,19 @@ public class TornadoGrowth : MonoBehaviour
     public void RemoveExperience(float amount)
     {
         _currentTotalXP -= amount;
-        if (_currentTotalXP < 0) _currentTotalXP = 0; // Cannot go below 0
         UpdateState();
+        
+        // Check if game is over (XP is 0 or below)
+        if (_currentTotalXP <= 0)
+        {
+            GameOver();
+        }
+    }
+    
+    void GameOver()
+    {
+        // Load the MainMenu scene
+        SceneManager.LoadScene(mainMenuSceneName);
     }
 
     // Calculates Level, Size, and UI based on Total XP

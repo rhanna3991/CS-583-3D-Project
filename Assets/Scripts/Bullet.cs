@@ -11,6 +11,10 @@ public class Bullet : MonoBehaviour
     [Tooltip("How long the bullet exists before destroying itself")]
     public float lifetime = 5f;
     
+    [Header("Effects")]
+    [Tooltip("Explosion prefab to spawn on contact")]
+    public GameObject explosionPrefab;
+    
     private float spawnTime;
     private GameObject shooter; // The enemy that shot this bullet
 
@@ -56,8 +60,42 @@ public class Bullet : MonoBehaviour
         {
             growthScript.RemoveExperience(xpDamage);
             
+            // Spawn explosion effect at impact point
+            SpawnExplosion(transform.position);
+            
             // Destroy the bullet
             Destroy(gameObject);
+        }
+        // Check if we hit an enemy
+        else if (other.GetComponent<EnemyAI>() != null)
+        {
+            // Spawn explosion effect at impact point
+            SpawnExplosion(transform.position);
+            
+            // Destroy the bullet
+            Destroy(gameObject);
+        }
+    }
+    
+    void SpawnExplosion(Vector3 position)
+    {
+        if (explosionPrefab != null)
+        {
+            GameObject explosion = Instantiate(explosionPrefab, position, Quaternion.identity);
+            
+            // Auto-destroy the explosion after its particle system finishes
+            ParticleSystem ps = explosion.GetComponentInChildren<ParticleSystem>();
+            if (ps != null)
+            {
+                // Get the main duration of the particle system
+                float duration = ps.main.duration + ps.main.startLifetime.constantMax;
+                Destroy(explosion, duration);
+            }
+            else
+            {
+                // Destroy after 1 second if no particle system found
+                Destroy(explosion, 1f);
+            }
         }
     }
 }
